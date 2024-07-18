@@ -19,11 +19,11 @@
  */
 class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 {
-    const CMD_CREATE = "create";
-    const CMD_SAVE = "save";
-    const CMD_EDIT = "edit";
-    const CMD_UPDATE = "update";
-    const CMD_CANCEL = "cancel";
+    public const CMD_CREATE = "create";
+    public const CMD_SAVE = "save";
+    public const CMD_EDIT = "edit";
+    public const CMD_UPDATE = "update";
+    public const CMD_CANCEL = "cancel";
 
     /** @var ilCtrl $ctrl */
     protected $ctrl;
@@ -334,5 +334,4 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
         return "<p>Activity does not exist!</p>";
     }
-
 }
