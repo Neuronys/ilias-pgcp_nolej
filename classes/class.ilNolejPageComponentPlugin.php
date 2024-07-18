@@ -52,7 +52,7 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
      * @param array $a_properties properties saved in the page (will be deleted afterwards)
      * @param string $a_plugin_version plugin version of the properties
      */
-    public function onDelete($a_properties, $a_plugin_version, $move_operation = false)
+    public function onDelete($a_properties, $a_plugin_version)
     {
         // Nothing to delete.
     }
