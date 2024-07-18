@@ -51,6 +51,7 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
      * This function is called before the page content is deleted.
      * @param array $a_properties properties saved in the page (will be deleted afterwards)
      * @param string $a_plugin_version plugin version of the properties
+     * @param bool $move_operation
      */
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
