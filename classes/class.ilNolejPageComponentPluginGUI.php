@@ -292,7 +292,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     /**
      * Get HTML for page component element depending on the context.
      *
-     * @param string page mode (edit, presentation, print, preview, offline)
+     * @param string $a_mode page mode (edit, presentation, print, preview, offline)
      * @param array $a_properties properties of the page component
      * @param string $a_plugin_version plugin version of the properties
      * @return string html code
