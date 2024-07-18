@@ -94,7 +94,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * @param string $key
      * @return string
      */
-    protected function txt(string $key): string
+    protected function txt($key)
     {
         global $DIC;
 
@@ -109,7 +109,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * Create new page component element.
      * @return void
      */
-    public function insert(): void
+    public function insert()
     {
         $form = $this->initForm(true);
         $this->tpl->setContent($form->getHTML());
@@ -119,7 +119,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * Save new page component element.
      * @return void
      */
-    public function create(): void
+    public function create()
     {
         $form = $this->initForm(true);
 
@@ -142,7 +142,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * Init the properties form and load the stored values.
      * @return void
      */
-    public function edit(): void
+    public function edit()
     {
         $form = $this->initForm(false);
         $this->tpl->setContent($form->getHTML());
@@ -152,7 +152,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * Update page component element.
      * @return void
      */
-    public function update(): void
+    public function update()
     {
         $form = $this->initForm(false);
 
@@ -284,7 +284,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * Cancel the creation or the update and return to the editor.
      * @return void
      */
-    public function cancel(): void
+    public function cancel()
     {
         $this->returnToParent();
     }
@@ -297,7 +297,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * @param string $a_plugin_version plugin version of the properties
      * @return string html code
      */
-    public function getElementHTML(string $a_mode, array $a_properties, string $a_plugin_version): string
+    public function getElementHTML($a_mode, $a_properties, $a_plugin_version)
     {
         if ($a_mode != "edit") {
             if (!isset($a_properties["content_id"])) {
