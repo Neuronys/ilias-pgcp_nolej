@@ -107,7 +107,6 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
     /**
      * Create new page component element.
-     * @TODO: This example shows the creation form for this PC. Adjust to plugin needs.
      * @return void
      */
     public function insert(): void
@@ -118,7 +117,6 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
     /**
      * Save new page component element.
-     * @TODO: This example saves the form data. Adjust to plugin needs.
      * @return void
      */
     public function create(): void
@@ -142,7 +140,6 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
     /**
      * Init the properties form and load the stored values.
-     * @TODO: This example shows the creation form for this PC. Adjust to plugin needs.
      * @return void
      */
     public function edit(): void
