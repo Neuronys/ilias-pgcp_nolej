@@ -6,7 +6,7 @@
  * software by Neuronys.
  *
  * @author Vincenzo Padula <vincenzo@oc-group.eu>
- * @copyright 2023 OC Open Consulting SB Srl
+ * @copyright 2024 OC Open Consulting SB Srl
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -15,10 +15,8 @@
  */
 class ilNolejPageComponentPlugin extends ilPageComponentPlugin
 {
-
     /**
-     * Get plugin name
-     *
+     * Get plugin name.
      * @return string
      */
     public function getPluginName(): string
@@ -27,9 +25,10 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
     }
 
     /**
-     * Check if parent type is valid
-     * @see getParentType() of classes extending ilPageObject
-     * @see NolejPageComponent::getReturnUrl()
+     * Check if the current parent type ("auth", "cat", "crs", etc.) is
+     * valid for this page component.
+     *
+     * @param string $a_parent_type parent type
      * @return bool
      */
     public function isValidParentType(string $a_parent_type): bool
@@ -40,35 +39,21 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
 
     /**
      * This function is called when the page content is cloned
-     * @param array 	$a_properties		properties saved in the page, (should be modified if neccessary)
-     * @param string	$a_plugin_version	plugin version of the properties
+     * @param array $a_properties properties saved in the page, (should be modified if neccessary)
+     * @param string $a_plugin_version plugin version of the properties
      */
     public function onClone(array &$a_properties, string $a_plugin_version): void
     {
-        // $settings_id = $a_properties["settings_id"];
-        // if (!empty($settings_id))
-        // {
-        // 	$oldSettings = new ilExternalContentSettings($settings_id);
-        // 	$newSettings = new ilExternalContentSettings();
-        // 	$oldSettings->clone($newSettings);
-        // 	$newSettings->setObjId($this->getParentId());
-        // 	$newSettings->save();
-        // 	$a_properties["settings_id"] = $newSettings->getSettingsId();
-        // }
+        // Nothing to clone.
     }
 
     /**
-     * This function is called before the page content is deleted
+     * This function is called before the page content is deleted.
      * @param array $a_properties properties saved in the page (will be deleted afterwards)
      * @param string $a_plugin_version plugin version of the properties
      */
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
-        // $settings_id = $a_properties["settings_id"];
-        // if (!empty($settings_id))
-        // {
-        // 	$exco_settings = new ilExternalContentSettings($settings_id);
-        // 	$exco_settings->delete();
-        // }
+        // Nothing to delete.
     }
 }

@@ -6,13 +6,9 @@
  * software by Neuronys.
  *
  * @author Vincenzo Padula <vincenzo@oc-group.eu>
- * @copyright 2023 OC Open Consulting SB Srl
+ * @copyright 2024 OC Open Consulting SB Srl
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilNolejPlugin.php");
-require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilObjNolejGUI.php");
-require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilNolejActivityManagementGUI.php");
 
 /**
  * Page Component GUI
@@ -23,12 +19,11 @@ require_once("./Customizing/global/plugins/Services/Repository/RepositoryObject/
  */
 class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 {
-    const CMD_CREATE = "create";
-    const CMD_SAVE = "save";
-    const CMD_EDIT = "edit";
-    const CMD_UPDATE = "update";
-    const CMD_CANCEL = "cancel";
-    const CMD_VIEW_PAGE = "viewPage";
+    public const CMD_CREATE = "create";
+    public const CMD_SAVE = "save";
+    public const CMD_EDIT = "edit";
+    public const CMD_UPDATE = "update";
+    public const CMD_CANCEL = "cancel";
 
     /** @var ilCtrl $ctrl */
     protected $ctrl;
@@ -49,6 +44,10 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
         $this->db = $DIC->database();
         $this->tpl = $DIC->ui()->mainTemplate();
 
+        require_once "./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilNolejPlugin.php";
+        require_once "./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilObjNolejGUI.php";
+        require_once "./Customizing/global/plugins/Services/Repository/RepositoryObject/Nolej/classes/class.ilNolejActivityManagementGUI.php";
+
         if (class_exists("ilNolejPlugin")) {
             $DIC->language()->loadLanguageModule(ilNolejPlugin::PREFIX);
         }
@@ -57,34 +56,40 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
-     * Execute command
+     * Delegates incoming commands.
+     *
+     * @throws ilException if command is not known
+     * @return void
      */
     public function executeCommand(): void
     {
-        $next_class = $this->ctrl->getNextClass();
+        if (!$this->plugin->isActive()) {
+            throw new ilException("Plugin not active.");
+        }
+
+        $cmd = $this->ctrl->getCmd();
+
+        $next_class = $this->ctrl->getNextClass($this);
         switch ($next_class) {
-            default:
-                // perform valid commands
-                $cmd = $this->ctrl->getCmd();
-                switch ($cmd) {
-                    case self::CMD_CREATE:
-                    case self::CMD_SAVE:
-                    case self::CMD_EDIT:
-                    case self::CMD_UPDATE:
-                    case self::CMD_CANCEL:
-                    case self::CMD_VIEW_PAGE:
-                        $this->$cmd();
-                        break;
-                    default:
-                        // Command not recognized
-                        return;
-                }
+            // Evaluate next classes. If the plugin does not have any, delete this block.
+        }
+
+        switch ($cmd) {
+            case self::CMD_CREATE:
+            case self::CMD_SAVE:
+            case self::CMD_EDIT:
+            case self::CMD_UPDATE:
+            case self::CMD_CANCEL:
+                $this->$cmd();
                 break;
+
+            default:
+                throw new ilException("Unknown command: '$cmd'");
         }
     }
 
     /**
-     * Language handler
+     * Language handler.
      *
      * @param string $key
      * @return string
@@ -92,45 +97,50 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     protected function txt(string $key): string
     {
         global $DIC;
+
         if (!class_exists("ilNolejPlugin")) {
             return "-" . $key . "-";
         }
+
         return $DIC->language()->txt(ilNolejPlugin::PREFIX . "_" . $key);
     }
 
     /**
-     * Create
+     * Create new page component element.
+     * @return void
      */
     public function insert(): void
     {
         $form = $this->initForm(true);
         $this->tpl->setContent($form->getHTML());
-
-        // Skip form
-        // $a_properties = array();
-        // $this->createElement($a_properties);
-        // $this->returnToParent();
     }
 
     /**
-     * Save new pc element
+     * Save new page component element.
+     * @return void
      */
     public function create(): void
     {
         $form = $this->initForm(true);
 
+        // Check form input.
         if ($form->checkInput()) {
+            // Save the form data.
             if ($this->saveForm($form, true)) {
+                // Return to the page editor.
                 $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_created"), true);
                 $this->returnToParent();
             }
-            $form->setValuesByPost();
         }
+
+        // Set form values from POST.
+        $form->setValuesByPost();
         $this->tpl->setContent($form->getHtml());
     }
 
     /**
-     * Init the properties form and load the stored values
+     * Init the properties form and load the stored values.
+     * @return void
      */
     public function edit(): void
     {
@@ -139,29 +149,26 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
-     * Update
+     * Update page component element.
+     * @return void
      */
     public function update(): void
     {
         $form = $this->initForm(false);
+
+        // Check form input.
         if ($form->checkInput()) {
+            // Save the form data.
             if ($this->saveForm($form, false)) {
+                // Return to the page editor.
                 $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_modified"), true);
                 $this->returnToParent();
             }
         }
+
+        // Set form values from POST.
         $form->setValuesByPost();
         $this->tpl->setContent($form->getHtml());
-    }
-
-    /**
-     * View Page
-     */
-    public function viewPage(): void
-    {
-        // $content = new ilNolejPageComponent($this->plugin, $properties["settings_id"]);
-        // $renderer = new ilExternalContentRenderer($content);
-        // $renderer->render();
     }
 
     /**
@@ -170,15 +177,6 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * @return ilPropertyFormGUI
      */
     protected function initForm($a_create = false)
-    {
-        return $this->initModulesListForm($a_create);
-    }
-
-    /**
-     * @param bool $a_create true: create component, false: edit component
-     * @return ilPropertyFormGUI
-     */
-    protected function initModulesListForm($a_create = false)
     {
         $properties = $this->getProperties();
         $form = new ilPropertyFormGUI();
@@ -199,7 +197,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
         while ($row = $this->db->fetchAssoc($result)) {
             $module = new ilRadioOption($row["title"], $row["document_id"]);
-            $selected = (!$a_create && $properties["document_id"] == $row["document_id"]);
+            $selected = !$a_create && $properties["document_id"] == $row["document_id"];
             $this->appendActivitiesListForm($module, $row["document_id"], $selected);
             $modules->addOption($module);
         }
@@ -260,7 +258,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
-     * Save the form values
+     * Save the form values.
      * @param ilPropertyFormGUI $form
      * @param bool $a_create
      * @return bool success
@@ -270,10 +268,11 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
         $documentId = $form->getInput("document_id");
         $contentId = $form->getInput("content_id");
 
-        $a_properties = array(
+        $a_properties = [
             "document_id" => $documentId,
-            "content_id" => $contentId
-        );
+            "content_id" => $contentId,
+        ];
+
         if ($a_create) {
             return $this->createElement($a_properties);
         }
@@ -282,7 +281,8 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
-     * Cancel
+     * Cancel the creation or the update and return to the editor.
+     * @return void
      */
     public function cancel(): void
     {
@@ -290,9 +290,11 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
     }
 
     /**
-     * Get HTML for element
+     * Get HTML for page component element depending on the context.
      *
      * @param string page mode (edit, presentation, print, preview, offline)
+     * @param array $a_properties properties of the page component
+     * @param string $a_plugin_version plugin version of the properties
      * @return string html code
      */
     public function getElementHTML(string $a_mode, array $a_properties, string $a_plugin_version): string
@@ -329,5 +331,4 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 
         return "<p>Activity does not exist!</p>";
     }
-
 }
