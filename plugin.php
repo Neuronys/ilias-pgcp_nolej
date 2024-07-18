@@ -6,7 +6,7 @@
  * software by Neuronys.
  *
  * @author Vincenzo Padula <vincenzo@oc-group.eu>
- * @copyright 2023 OC Open Consulting SB Srl
+ * @copyright 2024 OC Open Consulting SB Srl
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -16,8 +16,8 @@ $version = "1.0";
 $ilias_min_version = "8.0";
 $ilias_max_version = "8.999";
 
-$responsible = "OC Open Consulting";
+$responsible = "OC Open Consulting SB Srl";
 $responsible_mail = "plugins@oc-group.eu";
 
-// this plugin has an own exporter class?
+// This PC cannot be exported.
 $supports_export = false;
