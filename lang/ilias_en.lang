@@ -1,0 +1,9 @@
+cmd_cancel#:#Cancel
+cmd_edit#:#Edit Nolej
+cmd_insert#:#Insert Nolej
+cmd_save#:#Save
+msg_obj_created#:#Nolej added.
+msg_obj_modified#:#Nolej updated.
+plugin_description#:#
+plugin_title#:#Nolej
+tab_configure#:#Configure
