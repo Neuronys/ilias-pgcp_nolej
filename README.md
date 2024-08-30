@@ -20,7 +20,7 @@ From the ILIAS directory, run:
 ```sh
 mkdir -p Customizing/global/plugins/Services/COPage/PageComponent
 cd Customizing/global/plugins/Services/COPage/PageComponent
-git clone -b release_7 https://github.com/Neuronys/ilias-robj_nolej NolejPageComponent
+git clone -b release_7 https://github.com/Neuronys/ilias-pgcp_nolej NolejPageComponent
 ```
 
 ### Install the plugin
