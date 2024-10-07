@@ -11,7 +11,7 @@
  */
 
 /**
- * NolejPageComponent Page Component Plugin
+ * NolejPageComponent Page Component Plugin.
  */
 class ilNolejPageComponentPlugin extends ilPageComponentPlugin
 {
@@ -38,13 +38,14 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
     }
 
     /**
-     * This function is called when the page content is cloned
+     * This function is called when the page content is cloned.
      * @param array $a_properties properties saved in the page, (should be modified if neccessary)
      * @param string $a_plugin_version plugin version of the properties
      */
     public function onClone(array &$a_properties, string $a_plugin_version): void
     {
         // Nothing to clone.
+        parent::onClone($a_properties, $a_plugin_version);
     }
 
     /**
@@ -52,9 +53,11 @@ class ilNolejPageComponentPlugin extends ilPageComponentPlugin
      * @param array $a_properties properties saved in the page (will be deleted afterwards)
      * @param string $a_plugin_version plugin version of the properties
      * @param bool $move_operation
+     * @return void
      */
     public function onDelete(array $a_properties, string $a_plugin_version, bool $move_operation = false): void
     {
         // Nothing to delete.
+        parent::onDelete($a_properties, $a_plugin_version, $move_operation);
     }
 }
