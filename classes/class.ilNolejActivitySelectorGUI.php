@@ -69,6 +69,7 @@ class ilNolejActivitySelectorGUI extends ilRepositorySelectorExplorerGUI
     {
         $this->tpl->addJavaScript("./src/UI/templates/js/Modal/modal.js");
         $this->tpl->addJavaScript("./src/UI/templates/js/Tree/tree.js");
+        $script = "<script>var il = il || {};</script>";
         $this->tpl->addJavaScript(ilNolejPageComponentPlugin::PLUGIN_DIR . "/js/activity_selector.js");
 
         $this->ctrl->setParameter($this, "selection_cmd", $this->selection_cmd);
@@ -79,7 +80,7 @@ class ilNolejActivitySelectorGUI extends ilRepositorySelectorExplorerGUI
             return "pcnlj_setup_modal('{$id}', '{$replaceSignal}', '{$asyncUrl}')";
         });
 
-        return $this->renderer->render([$modal]) . parent::getHTML($new);
+        return $this->renderer->render([$modal]) . $script . parent::getHTML($new);
     }
 
     /**
