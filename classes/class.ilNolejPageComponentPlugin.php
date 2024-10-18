@@ -15,6 +15,9 @@
  */
 class ilNolejPageComponentPlugin extends ilPageComponentPlugin
 {
+    /** @var string */
+    public const PLUGIN_DIR = "./Customizing/global/plugins/Services/COPage/PageComponent/NolejPageComponent";
+
     /**
      * Get plugin name.
      * @return string

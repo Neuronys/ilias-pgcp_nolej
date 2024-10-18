@@ -6,4 +6,5 @@ msg_obj_created#:#Nolej added.
 msg_obj_modified#:#Nolej updated.
 plugin_description#:#
 plugin_title#:#Nolej
+select_obj#:#Select a Nolej object
 tab_configure#:#Configure

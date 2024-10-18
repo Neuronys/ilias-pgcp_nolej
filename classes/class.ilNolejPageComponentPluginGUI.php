@@ -16,16 +16,17 @@
  */
 class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
 {
+    public const CMD_INSERT = "insert";
     public const CMD_CREATE = "create";
     public const CMD_SAVE = "save";
     public const CMD_EDIT = "edit";
     public const CMD_UPDATE = "update";
     public const CMD_CANCEL = "cancel";
 
-    /** @var ilCtrl $ctrl */
+    /** @var ilCtrl */
     protected $ctrl;
 
-    /** @var ilTemplate $tpl */
+    /** @var ilGlobalPageTemplate */
     protected $tpl;
 
     /** @var ilDBInterface */
@@ -56,23 +57,39 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      */
     public function executeCommand(): void
     {
+        global $DIC;
+
         if (!$this->plugin->isActive()) {
             throw new ilException("Plugin not active.");
         }
 
-        $cmd = $this->ctrl->getCmd();
-        switch ($cmd) {
-            case self::CMD_CREATE:
-            case self::CMD_SAVE:
-            case self::CMD_EDIT:
-            case self::CMD_UPDATE:
-            case self::CMD_CANCEL:
-                $this->$cmd();
+        $next_class = $this->ctrl->getNextClass();
+
+        switch ($next_class) {
+            case strtolower(ilNolejActivitySelectorGUI::class):
+                $refinery = $DIC->refinery();
+                $request_wrapper = $DIC->http()->wrapper()->query();
+                $selection_cmd = $request_wrapper->retrieve("selection_cmd", $refinery->kindlyTo()->string());
+                $gui = $this->getNolejSelectorGUI("", $selection_cmd);
+                $this->ctrl->forwardCommand($gui);
                 break;
 
             default:
-                // Command not recognized.
-                throw new ilException("Unknown command: '$cmd'");
+                $cmd = $this->ctrl->getCmd();
+                switch ($cmd) {
+                    case self::CMD_INSERT:
+                    case self::CMD_CREATE:
+                    case self::CMD_SAVE:
+                    case self::CMD_EDIT:
+                    case self::CMD_UPDATE:
+                    case self::CMD_CANCEL:
+                        $this->$cmd();
+                        break;
+
+                    default:
+                        // Command not recognized.
+                        throw new ilException("Unknown command: '$cmd'");
+            }
         }
     }
 
@@ -82,7 +99,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      */
     public function insert(): void
     {
-        $form = $this->initForm(true);
+        $form = $this->initSelectorForm(self::CMD_INSERT, self::CMD_CREATE);
         $this->tpl->setContent($form->getHTML());
     }
 
@@ -92,20 +109,15 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      */
     public function create(): void
     {
-        $form = $this->initForm(true);
-
-        // Check form input.
-        if ($form->checkInput()) {
-            // Save the form data.
-            if ($this->saveForm($form, true)) {
-                // Return to the page editor.
-                $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_created"), true);
-                $this->returnToParent();
-            }
+        // Save the form data.
+        if ($this->saveData(true)) {
+            $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_created"), true);
+        } else {
+            $this->tpl->setOnScreenMessage("failure", $this->lng->txt("msg_obj_not_created"), true);
         }
 
-        $form->setValuesByPost();
-        $this->tpl->setContent($form->getHtml());
+        // Return to the page editor.
+        $this->returnToParent();
     }
 
     /**
@@ -114,8 +126,27 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      */
     public function edit(): void
     {
-        $form = $this->initForm(false);
+        $form = $this->initSelectorForm(self::CMD_EDIT, self::CMD_UPDATE);
         $this->tpl->setContent($form->getHTML());
+    }
+
+    /**
+     * Init selector form.
+     * @param string $cmd
+     * @param string $cmdToCall
+     * @return ilPropertyFormGUI
+     */
+    protected function initSelectorForm($cmd = "", $cmdToCall = "")
+    {
+        $form = new ilPropertyFormGUI();
+        $exp = $this->getNolejSelectorGUI($cmd, $cmdToCall);
+        $exp->handleCommand();
+
+        $selector = new ilNonEditableValueGUI($this->plugin->txt("select_obj"), "", true);
+        $selector->setValue($exp->getHTML());
+        $form->addItem($selector);
+
+        return $form;
     }
 
     /**
@@ -124,111 +155,28 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      */
     public function update(): void
     {
-        $form = $this->initForm(false);
-
-        // Check form input.
-        if ($form->checkInput()) {
-            // Save the form data.
-            if ($this->saveForm($form, false)) {
-                // Return to the page editor.
-                $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_modified"), true);
-                $this->returnToParent();
-            }
+        // Save the form data.
+        if ($this->saveData(false)) {
+            $this->tpl->setOnScreenMessage("success", $this->lng->txt("msg_obj_modified"), true);
+        } else {
+            $this->tpl->setOnScreenMessage("failure", $this->lng->txt("msg_obj_not_modified"), true);
         }
 
-        $form->setValuesByPost();
-        $this->tpl->setContent($form->getHtml());
+        // Return to the page editor.
+        $this->returnToParent();
     }
 
     /**
-     * Init creation editing form
-     * @param bool $a_create true: create component, false: edit component
-     * @return ilPropertyFormGUI
+     * Get Nolej tree explorer.
+     * @param string $cmd
+     * @param string $selection_cmd
+     * @return ilRepositorySelectorExplorerGUI
      */
-    protected function initForm($a_create = false)
+    protected function getNolejSelectorGUI($cmd = "", $selection_cmd = "")
     {
-        $properties = $this->getProperties();
-        $nolej = ilNolejPlugin::getInstance();
-
-        $form = new ilPropertyFormGUI();
-
-        $modules = new ilRadioGroupInputGUI(
-            $nolej->txt("module_select"),
-            "document_id"
-        );
-        $modules->setRequired(true);
-
-        $result = $this->db->queryF(
-            "SELECT document_id, title"
-            . " FROM " . ilNolejPlugin::TABLE_DOC
-            . " WHERE status = %s",
-            ["integer"],
-            [ilNolejActivityManagementGUI::STATUS_COMPLETED]
-        );
-
-        while ($row = $this->db->fetchAssoc($result)) {
-            $module = new ilRadioOption($row["title"], $row["document_id"]);
-            $selected = !$a_create && $properties["document_id"] == $row["document_id"];
-            $this->appendActivitiesListForm($module, $row["document_id"], $selected);
-            $modules->addOption($module);
-        }
-
-        if (!$a_create) {
-            $modules->setValue($properties["document_id"]);
-        }
-
-        $form->addItem($modules);
-
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->addCommandButton($a_create ? self::CMD_CREATE : self::CMD_UPDATE, $nolej->txt("cmd_choose"));
-        $form->addCommandButton(self::CMD_CANCEL, $nolej->txt("cmd_cancel"));
-
-        return $form;
-    }
-
-    /**
-     * @param ilRadioOption $module
-     * @param string $documentId
-     * @param bool $moduleSelected
-     * @return void
-     */
-    protected function appendActivitiesListForm($module, $documentId, $moduleSelected)
-    {
-        $properties = $this->getProperties();
-        $nolej = ilNolejPlugin::getInstance();
-
-        $activities = new ilRadioGroupInputGUI(
-            $nolej->txt("activities_select"),
-            "content_id"
-        );
-        $activities->setRequired(true);
-
-        $result = $this->db->queryF(
-            "SELECT content_id, type, `generated`"
-            . " FROM " . ilNolejPlugin::TABLE_H5P
-            . " WHERE document_id = %s"
-            . " ORDER BY `generated` DESC",
-            ["text"],
-            [$documentId]
-        );
-
-        while ($row = $this->db->fetchAssoc($result)) {
-            $activity = new ilRadioOption(
-                $nolej->txt("activities_" . $row["type"]),
-                $row["content_id"]
-            );
-            $activity->setInfo(
-                ilDatePresentation::formatDate(
-                    new ilDateTime($row["generated"], IL_CAL_UNIX)
-                )
-            );
-            $activities->addOption($activity);
-        }
-
-        if ($moduleSelected) {
-            $activities->setValue($properties["content_id"]);
-        }
-        $module->addSubItem($activities);
+        $target = $this->ctrl->getLinkTarget($this, $selection_cmd);
+        $tree = new ilNolejActivitySelectorGUI($this, $cmd, null, $selection_cmd, $target);
+        return $tree;
     }
 
     /**
@@ -237,10 +185,15 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
      * @param bool $a_create
      * @return bool success
      */
-    protected function saveForm($form, $a_create)
+    protected function saveData($a_create)
     {
-        $documentId = $form->getInput("document_id");
-        $contentId = $form->getInput("content_id");
+        global $DIC;
+
+        $refinery = $DIC->refinery();
+        $request_wrapper = $DIC->http()->wrapper()->query();
+
+        $documentId = $request_wrapper->retrieve("document_id", $refinery->kindlyTo()->string());
+        $contentId = $request_wrapper->retrieve("content_id", $refinery->kindlyTo()->int());
 
         $a_properties = [
             "document_id" => $documentId,
