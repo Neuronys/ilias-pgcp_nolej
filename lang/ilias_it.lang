@@ -8,3 +8,4 @@ plugin_description#:#
 plugin_title#:#Nolej
 select_obj#:#Seleziona un oggetto Nolej
 tab_configure#:#Configura
+err_not_found#:#Attività non trovata.

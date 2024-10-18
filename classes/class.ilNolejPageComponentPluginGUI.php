@@ -89,7 +89,7 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
                     default:
                         // Command not recognized.
                         throw new ilException("Unknown command: '$cmd'");
-            }
+                }
         }
     }
 
@@ -145,6 +145,9 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
         $selector = new ilNonEditableValueGUI($this->plugin->txt("select_obj"), "", true);
         $selector->setValue($exp->getHTML());
         $form->addItem($selector);
+
+        $form->setFormAction($this->ctrl->getFormAction($this));
+        $form->addCommandButton(self::CMD_CANCEL, $this->lng->txt("cancel"));
 
         return $form;
     }
@@ -226,18 +229,27 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
         array $a_properties,
         string $a_plugin_version
     ): string {
+        global $DIC;
+
+        $factory = $DIC->ui()->factory();
+        $renderer = $DIC->ui()->renderer();
+
         $nolej = ilNolejPlugin::getInstance();
 
-        if ($a_mode != "edit") {
-            if (!isset($a_properties["content_id"])) {
-                return "<p>Activity not found!</p>";
-            }
+        $tpl = $this->plugin->getTemplate("default/tpl.content.html");
 
-            return ilNolejPlugin::renderH5P((int) $a_properties["content_id"]);
-        }
+        $error = $renderer->render($factory->messageBox()->failure($this->plugin->txt("err_not_found")));
 
         if (!isset($a_properties["content_id"])) {
-            return "<p>Activity not found!</p>";
+            $tpl->setVariable("CONTENT", $error);
+            return $tpl->get();
+        }
+
+        $contentId = (int) $a_properties["content_id"];
+
+        if ($a_mode != "edit") {
+            $tpl->setVariable("CONTENT", ilNolejPlugin::renderH5P($contentId));
+            return $tpl->get();
         }
 
         $result = $this->db->queryF(
@@ -247,17 +259,24 @@ class ilNolejPageComponentPluginGUI extends ilPageComponentPluginGUI
             . " ON c.document_id = d.document_id"
             . " WHERE c.content_id = %s",
             ["integer"],
-            [$a_properties["content_id"]]
+            [$contentId]
         );
 
         if ($row = $this->db->fetchAssoc($result)) {
-            return sprintf(
-                "<p>" . $nolej->txt("activities_selected") . "</p>",
+            $tpl->touchBlock("title");
+            $title = sprintf(
+                $nolej->txt("activities_selected"),
                 $nolej->txt("activities_" . $row["type"]),
                 $row["title"]
             );
+            $tpl->setVariable("TITLE", $title);
+
+            $tpl->setVariable("CONTENT", ilNolejPlugin::renderH5P($contentId));
+
+            return $tpl->get();
         }
 
-        return "<p>Activity does not exist!</p>";
+        $tpl->setVariable("CONTENT", ilNolejPlugin::renderH5P($contentId));
+        return $tpl->get();
     }
 }

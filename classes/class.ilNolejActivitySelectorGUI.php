@@ -176,7 +176,7 @@ class ilNolejActivitySelectorGUI extends ilRepositorySelectorExplorerGUI
 
     /**
      * Activities expandable tree.
-     * @param string $cmd to call
+     * @param string $documentId
      * @return array
      */
     protected function initActivityForm($documentId)
